@@ -3,6 +3,7 @@ from typing import Any, Optional
 
 import numpy as np
 import torch
+import intel_extension_for_pytorch as ipex
 import torch._dynamo
 from pytorch_lightning import Callback, LightningModule
 from torch import Tensor, nn
@@ -360,8 +361,8 @@ class Boltz2(LightningModule):
     def setup(self, stage: str) -> None:
         """Set the model for training, validation and inference."""
         if stage == "predict" and not (
-            torch.cuda.is_available()
-            and torch.cuda.get_device_properties(torch.device("cuda")).major >= 8.0  # noqa: PLR2004
+            torch.xpu.is_available()
+            and torch.xpu.get_device_properties(torch.device("xpu")).major >= 8.0  # noqa: PLR2004
         ):
             self.use_kernels = False
 
@@ -525,7 +526,7 @@ class Boltz2(LightningModule):
                     "token_trans_bias": token_trans_bias,
                 }
 
-                with torch.autocast("cuda", enabled=False):
+                with torch.autocast("xpu", enabled=False):
                     struct_out = self.structure_module.sample(
                         s_trunk=s.float(),
                         s_inputs=s_inputs.float(),
@@ -564,7 +565,7 @@ class Boltz2(LightningModule):
                 feats["coords"] = atom_coords  # (multiplicity, L, 3)
                 assert len(feats["coords"].shape) == 3
 
-                with torch.autocast("cuda", enabled=False):
+                with torch.autocast("xpu", enabled=False):
                     struct_out = self.structure_module(
                         s_trunk=s.float(),
                         s_inputs=s_inputs.float(),
@@ -621,7 +622,7 @@ class Boltz2(LightningModule):
             ]
             s_inputs = self.input_embedder(feats, affinity=True)
 
-            with torch.autocast("cuda", enabled=False):
+            with torch.autocast("xpu", enabled=False):
                 if self.affinity_ensemble:
                     dict_out_affinity1 = self.affinity_module1(
                         s_inputs=s_inputs.detach(),
@@ -981,7 +982,7 @@ class Boltz2(LightningModule):
         ]
         if len(parameters) == 0:
             return torch.tensor(
-                0.0, device="cuda" if torch.cuda.is_available() else "cpu"
+                0.0, device="xpu" if torch.xpu.is_available() else "cpu"
             )
         norm = torch.stack(parameters).sum().sqrt()
         return norm
@@ -990,7 +991,7 @@ class Boltz2(LightningModule):
         parameters = [p.norm(p=2) ** 2 for p in module.parameters() if p.requires_grad]
         if len(parameters) == 0:
             return torch.tensor(
-                0.0, device="cuda" if torch.cuda.is_available() else "cpu"
+                0.0, device="xpu" if torch.xpu.is_available() else "cpu"
             )
         norm = torch.stack(parameters).sum().sqrt()
         return norm
@@ -1018,7 +1019,7 @@ class Boltz2(LightningModule):
                 if "out of memory" in str(e):
                     msg = f"| WARNING: ran out of memory, skipping batch, {idx_dataset}"
                     print(msg)
-                    torch.cuda.empty_cache()
+                    torch.xpu.empty_cache()
                     gc.collect()
                     return
                 raise e
@@ -1038,7 +1039,7 @@ class Boltz2(LightningModule):
                 if "out of memory" in str(e):
                     msg = f"| WARNING: ran out of memory, skipping batch, {idx_dataset}"
                     print(msg)
-                    torch.cuda.empty_cache()
+                    torch.xpu.empty_cache()
                     gc.collect()
                     return
                 raise e
@@ -1117,7 +1118,7 @@ class Boltz2(LightningModule):
         except RuntimeError as e:  # catch out of memory exceptions
             if "out of memory" in str(e):
                 print("| WARNING: ran out of memory, skipping batch")
-                torch.cuda.empty_cache()
+                torch.xpu.empty_cache()
                 gc.collect()
                 return {"exception": True}
             else:

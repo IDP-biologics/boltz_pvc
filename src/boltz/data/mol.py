@@ -5,6 +5,8 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import intel_extension_for_pytorch as ipex
+
 from rdkit.Chem import Mol
 from tqdm import tqdm
 

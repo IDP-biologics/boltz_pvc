@@ -6,6 +6,7 @@
 from typing import Any, Optional
 
 import torch
+import intel_extension_for_pytorch as ipex
 from pytorch_lightning import Callback, LightningModule, Trainer
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 from pytorch_lightning.utilities.types import STEP_OUTPUT

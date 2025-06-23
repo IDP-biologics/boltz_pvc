@@ -1,4 +1,5 @@
 import torch
+import intel_extension_for_pytorch as ipex
 from torch import nn
 
 from boltz.data import const

@@ -1,4 +1,5 @@
 import torch
+import intel_extension_for_pytorch as ipex
 from torch import Tensor, nn
 
 import boltz.model.layers.initialize as init

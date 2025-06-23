@@ -13,6 +13,8 @@ from typing import Literal, Optional
 
 import click
 import torch
+import intel_extension_for_pytorch as ipex
+
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.strategies import DDPStrategy
 from pytorch_lightning.utilities import rank_zero_only

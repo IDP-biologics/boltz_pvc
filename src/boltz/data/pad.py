@@ -1,4 +1,6 @@
 import torch
+import intel_extension_for_pytorch as ipex
+
 from torch import Tensor
 from torch.nn.functional import pad
 

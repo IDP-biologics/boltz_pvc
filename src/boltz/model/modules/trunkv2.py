@@ -1,4 +1,5 @@
 import torch
+import intel_extension_for_pytorch as ipex
 from torch import Tensor, nn
 from torch.nn.functional import one_hot
 
@@ -308,7 +309,7 @@ class TemplateModule(nn.Module):
         asym_mask = asym_mask[:, None].expand(-1, T, -1, -1)
 
         # Compute template features
-        with torch.autocast(device_type="cuda", enabled=False):
+        with torch.autocast(device_type="xpu", enabled=False):
             # Compute distogram
             cb_dists = torch.cdist(cb_coords, cb_coords)
             boundaries = torch.linspace(self.min_dist, self.max_dist, self.num_bins - 1)
@@ -459,7 +460,7 @@ class TemplateV2Module(nn.Module):
         ).float()
 
         # Compute template features
-        with torch.autocast(device_type="cuda", enabled=False):
+        with torch.autocast(device_type="xpu", enabled=False):
             # Compute distogram
             cb_dists = torch.cdist(cb_coords, cb_coords)
             boundaries = torch.linspace(self.min_dist, self.max_dist, self.num_bins - 1)

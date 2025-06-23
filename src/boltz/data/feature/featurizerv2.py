@@ -6,6 +6,8 @@ import numpy as np
 import numpy.typing as npt
 import rdkit.Chem.Descriptors
 import torch
+import intel_extension_for_pytorch as ipex
+
 from numba import types
 from rdkit.Chem import Mol
 from scipy.spatial.distance import cdist

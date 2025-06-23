@@ -4,6 +4,7 @@ from functools import partial
 from typing import Optional
 
 import torch
+import intel_extension_for_pytorch as ipex
 import torch.nn.functional as F
 from torch.nn import (
     Linear,

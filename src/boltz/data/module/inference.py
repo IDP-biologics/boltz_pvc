@@ -4,6 +4,8 @@ from typing import Optional
 import numpy as np
 import pytorch_lightning as pl
 import torch
+import intel_extension_for_pytorch as ipex
+
 from torch import Tensor
 from torch.utils.data import DataLoader
 

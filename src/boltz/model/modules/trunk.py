@@ -1,6 +1,7 @@
 from typing import Optional
 
 import torch
+import intel_extension_for_pytorch as ipex
 from fairscale.nn.checkpoint.checkpoint_activations import checkpoint_wrapper
 from torch import Tensor, nn
 

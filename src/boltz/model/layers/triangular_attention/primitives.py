@@ -17,6 +17,7 @@ import math
 from typing import Callable, List, Optional, Tuple
 
 import torch
+import intel_extension_for_pytorch as ipex
 from cuequivariance_torch.primitives.triangle import triangle_attention
 from einops import rearrange
 from torch import nn
@@ -104,7 +105,7 @@ class Linear(nn.Linear):
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         d = input.dtype
         if self.precision is not None:
-            with torch.autocast("cuda", enabled=False):
+            with torch.autocast("xpu", enabled=False):
                 bias = (
                     self.bias.to(dtype=self.precision)
                     if self.bias is not None
@@ -117,7 +118,7 @@ class Linear(nn.Linear):
                 ).to(dtype=d)
 
         if d is torch.bfloat16:
-            with torch.autocast("cuda", enabled=False):
+            with torch.autocast("xpu", enabled=False):
                 bias = self.bias.to(dtype=d) if self.bias is not None else None
                 return nn.functional.linear(input, self.weight.to(dtype=d), bias)
 
@@ -137,7 +138,7 @@ class LayerNorm(nn.Module):
     def forward(self, x):
         d = x.dtype
         if d is torch.bfloat16:
-            with torch.autocast("cuda", enabled=False):
+            with torch.autocast("xpu", enabled=False):
                 out = nn.functional.layer_norm(
                     x,
                     self.c_in,
@@ -165,7 +166,7 @@ def softmax_no_cast(t: torch.Tensor, dim: int = -1) -> torch.Tensor:
     """
     d = t.dtype
     if d is torch.bfloat16:
-        with torch.autocast("cuda", enabled=False):
+        with torch.autocast("xpu", enabled=False):
             s = torch.nn.functional.softmax(t, dim=dim)
     else:
         s = torch.nn.functional.softmax(t, dim=dim)
@@ -397,7 +398,7 @@ def _trifast_attn(q, k, v, biases):
     # Make mask the right shape.
     mask = rearrange(mask, "b i () () j -> b i j").bool()
 
-    # Delay import to here to avoid initializing cuda too early
+    # Delay import to here to avoid initializing xpu too early
     from trifast import triangle_attention
 
     o = triangle_attention(q, k, v, b, mask)

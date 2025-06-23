@@ -1,6 +1,7 @@
 from typing import Optional
 
 import torch
+import intel_extension_for_pytorch as ipex
 from torch import Tensor, nn
 
 from boltz.data import const
@@ -102,7 +103,7 @@ class PairformerLayer(nn.Module):
         z = z + self.transition_z(z)
 
         # Compute sequence stack
-        with torch.autocast("cuda", enabled=False):
+        with torch.autocast("xpu", enabled=False):
             s_normed = self.pre_norm_s(s.float())
             s = s.float() + self.attention(
                 s=s_normed, z=z.float(), mask=mask.float(), k_in=s_normed

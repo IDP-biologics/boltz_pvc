@@ -3,6 +3,7 @@ from functools import partial
 from math import pi
 
 import torch
+import intel_extension_for_pytorch as ipex
 from einops import rearrange
 from torch import nn
 from torch.nn import Linear, Module, ModuleList
@@ -309,7 +310,7 @@ class AtomEncoder(Module):
         s_trunk=None,  # Float['bm n ts'],
         z=None,  # Float['bm n n tz'],
     ):
-        with torch.autocast("cuda", enabled=False):
+        with torch.autocast("xpu", enabled=False):
             B, N, _ = feats["ref_pos"].shape
             atom_mask = feats["atom_pad_mask"].bool()  # Bool['b m'],
 
@@ -478,7 +479,7 @@ class AtomAttentionEncoder(Module):
             to_keys=to_keys,
         )
 
-        with torch.autocast("cuda", enabled=False):
+        with torch.autocast("xpu", enabled=False):
             q_to_a = self.atom_to_token_trans(q).float()
             atom_to_token = feats["atom_to_token"].float()
             atom_to_token = atom_to_token.repeat_interleave(multiplicity, 0)
@@ -541,7 +542,7 @@ class AtomAttentionDecoder(Module):
         to_keys,
         multiplicity=1,
     ):
-        with torch.autocast("cuda", enabled=False):
+        with torch.autocast("xpu", enabled=False):
             atom_to_token = feats["atom_to_token"].float()
             atom_to_token = atom_to_token.repeat_interleave(multiplicity, 0)
 

@@ -1,4 +1,5 @@
 import torch
+import intel_extension_for_pytorch as ipex
 from torch import Tensor
 
 
@@ -21,7 +22,7 @@ def bfactor_loss_fn(
         The globally averaged loss.
 
     """
-    with torch.autocast("cuda", enabled=False):
+    with torch.autocast("xpu", enabled=False):
         # Get predicted distograms
         pred = output["pbfactor"].float()  # (B, L, bins)
         bins = pred.shape[2]  # num_bins

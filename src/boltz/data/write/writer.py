@@ -5,6 +5,7 @@ from typing import Literal
 
 import numpy as np
 import torch
+import intel_extension_for_pytorch as ipex
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import BasePredictionWriter
 from torch import Tensor

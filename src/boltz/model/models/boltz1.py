@@ -3,6 +3,7 @@ import random
 from typing import Any, Optional
 
 import torch
+import intel_extension_for_pytorch as ipex
 import torch._dynamo
 from pytorch_lightning import LightningModule
 from torch import Tensor, nn
@@ -263,11 +264,13 @@ class Boltz1(LightningModule):
 
     def setup(self, stage: str) -> None:
         """Set the model for training, validation and inference."""
-        if stage == "predict" and not (
-            torch.cuda.is_available()
-            and torch.cuda.get_device_properties(torch.device("cuda")).major >= 8.0  # noqa: PLR2004
-        ):
-            self.use_kernels = False
+        if stage =="predict":
+            self.use_kernels=False
+        #if stage == "predict" and not (
+        #    torch.cuda.is_available()
+        #    and torch.cuda.get_device_properties(torch.device("cuda")).major >= 8.0  # noqa: PLR2004
+        #):
+        #    self.use_kernels = False
 
     def forward(
         self,
@@ -626,7 +629,7 @@ class Boltz1(LightningModule):
         except RuntimeError as e:  # catch out of memory exceptions
             if "out of memory" in str(e):
                 print("| WARNING: ran out of memory, skipping batch")
-                torch.cuda.empty_cache()
+                torch.xpu.empty_cache()
                 gc.collect()
                 return
             else:
@@ -680,7 +683,7 @@ class Boltz1(LightningModule):
         except RuntimeError as e:  # catch out of memory exceptions
             if "out of memory" in str(e):
                 print("| WARNING: ran out of memory, skipping batch")
-                torch.cuda.empty_cache()
+                torch.xpu.empty_cache()
                 gc.collect()
                 return
             else:
@@ -1192,7 +1195,7 @@ class Boltz1(LightningModule):
         except RuntimeError as e:  # catch out of memory exceptions
             if "out of memory" in str(e):
                 print("| WARNING: ran out of memory, skipping batch")
-                torch.cuda.empty_cache()
+                torch.xpu.empty_cache()
                 gc.collect()
                 return {"exception": True}
             else:

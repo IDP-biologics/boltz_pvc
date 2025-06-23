@@ -17,6 +17,7 @@ from functools import partial, partialmethod
 from typing import Optional
 
 import torch
+import intel_extension_for_pytorch as ipex
 import torch.nn as nn
 
 from boltz.model.layers.triangular_attention.primitives import (

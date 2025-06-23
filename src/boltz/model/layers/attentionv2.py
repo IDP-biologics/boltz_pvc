@@ -1,6 +1,7 @@
 from typing import Optional
 
 import torch
+import intel_extension_for_pytorch as ipex
 from einops.layers.torch import Rearrange
 from torch import Tensor, nn
 
@@ -96,7 +97,7 @@ class AttentionPairBias(nn.Module):
 
         g = self.proj_g(s).sigmoid()
 
-        with torch.autocast("cuda", enabled=False):
+        with torch.autocast("xpu", enabled=False):
             # Compute attention weights
             attn = torch.einsum("bihd,bjhd->bhij", q.float(), k.float())
             attn = attn / (self.head_dim**0.5) + bias.float()

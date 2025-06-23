@@ -1,4 +1,5 @@
 import torch
+import intel_extension_for_pytorch as ipex
 from cuequivariance_torch.primitives.triangle import triangle_multiplicative_update
 from torch import Tensor, nn
 

@@ -1,4 +1,5 @@
 import torch
+import intel_extension_for_pytorch as ipex
 
 
 class AlphaFoldLRScheduler(torch.optim.lr_scheduler._LRScheduler):
