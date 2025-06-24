@@ -1,7 +1,42 @@
 import torch
+import intel_extension_for_pytorch as ipex
+from cuequivariance_torch.primitives.triangle import triangle_multiplicative_update
+#from trifast import triangle_multiplicative_update
+
 from torch import Tensor, nn
 
 from boltz.model.layers import initialize as init
+
+
+@torch.compiler.disable
+def kernel_triangular_mult(
+    x,
+    direction,
+    mask,
+    norm_in_weight,
+    norm_in_bias,
+    p_in_weight,
+    g_in_weight,
+    norm_out_weight,
+    norm_out_bias,
+    p_out_weight,
+    g_out_weight,
+    eps,
+):
+    return triangle_multiplicative_update(
+        x,
+        direction=direction,
+        mask=mask,
+        norm_in_weight=norm_in_weight,
+        norm_in_bias=norm_in_bias,
+        p_in_weight=p_in_weight,
+        g_in_weight=g_in_weight,
+        norm_out_weight=norm_out_weight,
+        norm_out_bias=norm_out_bias,
+        p_out_weight=p_out_weight,
+        g_out_weight=g_out_weight,
+        eps=eps,
+    )
 
 
 class TriangleMultiplicationOutgoing(nn.Module):
@@ -47,6 +82,8 @@ class TriangleMultiplicationOutgoing(nn.Module):
             The input data of shape (B, N, N, D)
         mask: torch.Tensor
             The input mask of shape (B, N, N)
+        use_kernels: bool
+            Whether to use the kernel
 
         Returns
         -------
@@ -54,7 +91,22 @@ class TriangleMultiplicationOutgoing(nn.Module):
             The output data of shape (B, N, N, D)
 
         """
-        #use_kernels = False
+        if use_kernels:
+            return kernel_triangular_mult(
+                x,
+                direction="outgoing",
+                mask=mask,
+                norm_in_weight=self.norm_in.weight,
+                norm_in_bias=self.norm_in.bias,
+                p_in_weight=self.p_in.weight,
+                g_in_weight=self.g_in.weight,
+                norm_out_weight=self.norm_out.weight,
+                norm_out_bias=self.norm_out.bias,
+                p_out_weight=self.p_out.weight,
+                g_out_weight=self.g_out.weight,
+                eps=1e-5,
+            )
+
         # Input gating: D -> D
         x = self.norm_in(x)
         x_in = x
@@ -118,6 +170,8 @@ class TriangleMultiplicationIncoming(nn.Module):
             The input data of shape (B, N, N, D)
         mask: torch.Tensor
             The input mask of shape (B, N, N)
+        use_kernels: bool
+            Whether to use the kernel
 
         Returns
         -------
@@ -125,6 +179,22 @@ class TriangleMultiplicationIncoming(nn.Module):
             The output data of shape (B, N, N, D)
 
         """
+        if use_kernels:
+            return kernel_triangular_mult(
+                x,
+                direction="incoming",
+                mask=mask,
+                norm_in_weight=self.norm_in.weight,
+                norm_in_bias=self.norm_in.bias,
+                p_in_weight=self.p_in.weight,
+                g_in_weight=self.g_in.weight,
+                norm_out_weight=self.norm_out.weight,
+                norm_out_bias=self.norm_out.bias,
+                p_out_weight=self.p_out.weight,
+                g_out_weight=self.g_out.weight,
+                eps=1e-5,
+            )
+
         # Input gating: D -> D
         x = self.norm_in(x)
         x_in = x

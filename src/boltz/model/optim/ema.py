@@ -7,9 +7,9 @@ from typing import Any, Optional
 
 import torch
 import intel_extension_for_pytorch as ipex
-from pytorch_lightning import Callback, LightningModule, Trainer
-from pytorch_lightning.utilities.exceptions import MisconfigurationException
-from pytorch_lightning.utilities.types import STEP_OUTPUT
+from lightning.pytorch import Callback, LightningModule, Trainer
+from lightning.pytorch.utilities.exceptions import MisconfigurationException
+from lightning.pytorch.utilities.types import STEP_OUTPUT
 
 
 class EMA(Callback):

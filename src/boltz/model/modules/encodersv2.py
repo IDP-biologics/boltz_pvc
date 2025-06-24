@@ -218,7 +218,8 @@ class PairwiseConditioning(Module):
         return z
 
 
-def get_indexing_matrix(K, W, H, device):
+def get_indexing_matrix(K, W, H, device='xpu'):
+    print(device)
     assert W % 2 == 0
     assert H % (W // 2) == 0
 

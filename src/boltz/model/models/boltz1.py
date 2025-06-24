@@ -5,7 +5,7 @@ from typing import Any, Optional
 import torch
 import intel_extension_for_pytorch as ipex
 import torch._dynamo
-from pytorch_lightning import LightningModule
+from lightning.pytorch import LightningModule
 from torch import Tensor, nn
 from torchmetrics import MeanMetric
 
@@ -265,7 +265,7 @@ class Boltz1(LightningModule):
     def setup(self, stage: str) -> None:
         """Set the model for training, validation and inference."""
         if stage =="predict":
-            self.use_kernels=False
+            self.use_kernels=True
         #if stage == "predict" and not (
         #    torch.cuda.is_available()
         #    and torch.cuda.get_device_properties(torch.device("cuda")).major >= 8.0  # noqa: PLR2004
@@ -288,6 +288,7 @@ class Boltz1(LightningModule):
         with torch.set_grad_enabled(
             self.training and self.structure_prediction_training
         ):
+            print("Using boltz1")
             s_inputs = self.input_embedder(feats)
 
             # Initialize the sequence and pairwise embeddings

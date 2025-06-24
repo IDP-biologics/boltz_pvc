@@ -16,6 +16,7 @@ from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 import torch
+import intel_extension_for_pytorch as ipex
 
 
 def add(m1, m2, inplace):

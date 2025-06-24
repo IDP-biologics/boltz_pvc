@@ -15,9 +15,9 @@ import click
 import torch
 import intel_extension_for_pytorch as ipex
 
-from pytorch_lightning import Trainer, seed_everything
-from pytorch_lightning.strategies import DDPStrategy
-from pytorch_lightning.utilities import rank_zero_only
+from lightning.pytorch import Trainer, seed_everything
+from lightning.pytorch.strategies import DDPStrategy
+from lightning.pytorch.utilities import rank_zero_only
 from rdkit import Chem
 from tqdm import tqdm
 
@@ -943,7 +943,7 @@ def predict(  # noqa: C901, PLR0915, PLR0912
     checkpoint: Optional[str] = None,
     affinity_checkpoint: Optional[str] = None,
     devices: int = 1,
-    accelerator: str = "gpu",
+    accelerator: str = "xpu",
     recycling_steps: int = 3,
     sampling_steps: int = 200,
     diffusion_samples: int = 1,

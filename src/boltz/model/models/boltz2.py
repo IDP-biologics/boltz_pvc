@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import intel_extension_for_pytorch as ipex
 import torch._dynamo
-from pytorch_lightning import Callback, LightningModule
+from lightning.pytorch import Callback, LightningModule
 from torch import Tensor, nn
 from torchmetrics import MeanMetric
 
@@ -362,9 +362,9 @@ class Boltz2(LightningModule):
         """Set the model for training, validation and inference."""
         if stage == "predict" and not (
             torch.xpu.is_available()
-            and torch.xpu.get_device_properties(torch.device("xpu")).major >= 8.0  # noqa: PLR2004
+            #and torch.xpu.get_device_properties(torch.device("xpu")).major >= 8.0  # noqa: PLR2004
         ):
-            self.use_kernels = False
+            self.use_kernels = True
 
         if (
             stage != "predict"
@@ -412,6 +412,7 @@ class Boltz2(LightningModule):
         with torch.set_grad_enabled(
             self.training and self.structure_prediction_training
         ):
+            print("Using Boltz2")
             s_inputs = self.input_embedder(feats)
 
             # Initialize the sequence embeddings
