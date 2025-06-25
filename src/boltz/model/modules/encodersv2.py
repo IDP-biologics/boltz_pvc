@@ -261,7 +261,16 @@ class AtomEncoder(Module):
     ):
         super().__init__()
 
-        self.embed_atom_features = Linear(atom_feature_dim, atom_s)
+        print(f"{atom_feature_dim=}")
+        print(f"{atom_s=}")
+        self.embed_atom_features = Linear(atom_feature_dim, atom_s).to(torch.bfloat16)#.to('xpu')
+        device_emb = torch.device("xpu")
+        self.embed_atom_features = self.embed_atom_features.to(device_emb)
+        # Iterate and print all named modules (layers)
+        print("All layers in the model:")
+        for name, module in self.embed_atom_features.named_modules():
+            print(f"Layer Name: {name}, Layer Type: {type(module)}")
+        print(self.embed_atom_features)
         self.embed_atompair_ref_pos = LinearNoBias(3, atom_z)
         self.embed_atompair_ref_dist = LinearNoBias(1, atom_z)
         self.embed_atompair_mask = LinearNoBias(1, atom_z)
@@ -311,7 +320,7 @@ class AtomEncoder(Module):
         s_trunk=None,  # Float['bm n ts'],
         z=None,  # Float['bm n n tz'],
     ):
-        with torch.autocast("xpu", enabled=False):
+        with torch.autocast("xpu", enabled=True, dtype=torch.bfloat16):
             B, N, _ = feats["ref_pos"].shape
             atom_mask = feats["atom_pad_mask"].bool()  # Bool['b m'],
 
@@ -332,16 +341,17 @@ class AtomEncoder(Module):
                     [
                         feats["res_type"],
                         feats["modified"].unsqueeze(-1),
-                        one_hot(feats["mol_type"], num_classes=4).float(),
+                        one_hot(feats["mol_type"], num_classes=4).bfloat16(),
                     ],
                     dim=-1,
                 )
-                atom_to_token = feats["atom_to_token"].float()
-                atom_res_feats = torch.bmm(atom_to_token, res_feats)
+                atom_to_token = feats["atom_to_token"].bfloat16()
+                atom_res_feats = torch.bmm(atom_to_token, res_feats).bfloat16().to('xpu')
                 atom_feats.append(atom_res_feats)
 
-            atom_feats = torch.cat(atom_feats, dim=-1)
-
+            atom_feats = torch.cat(atom_feats, dim=-1).to(torch.device('xpu'))#.bfloat16()#half()
+            print(atom_feats)
+            self.embed_atom_features = self.embed_atom_features.to(torch.device('xpu'))
             c = self.embed_atom_features(atom_feats)
 
             # note we are already creating the windows to make it more efficient
@@ -364,11 +374,11 @@ class AtomEncoder(Module):
 
             atom_mask_queries = atom_mask.view(B, K, W, 1)
             atom_mask_keys = (
-                to_keys(atom_mask.unsqueeze(-1).float()).view(B, K, 1, H).bool()
+                to_keys(atom_mask.unsqueeze(-1).bfloat16()).view(B, K, 1, H).bool()
             )
             atom_uid_queries = atom_uid.view(B, K, W, 1)
             atom_uid_keys = (
-                to_keys(atom_uid.unsqueeze(-1).float()).view(B, K, 1, H).long()
+                to_keys(atom_uid.unsqueeze(-1).bfloat16()).view(B, K, 1, H).long()
             )
             v = (
                 (
@@ -376,7 +386,7 @@ class AtomEncoder(Module):
                     & atom_mask_keys
                     & (atom_uid_queries == atom_uid_keys)
                 )
-                .float()
+                .bfloat16()
                 .unsqueeze(-1)
             )  # Bool['b k w h 1']
 
@@ -388,9 +398,9 @@ class AtomEncoder(Module):
 
             if self.structure_prediction:
                 # run only in structure model not in initial encoding
-                atom_to_token = feats["atom_to_token"].float()  # Long['b m n'],
+                atom_to_token = feats["atom_to_token"].bfloat16()  # Long['b m n'],
 
-                s_to_c = self.s_to_c_trans(s_trunk.float())
+                s_to_c = self.s_to_c_trans(s_trunk.bfloat16())
                 s_to_c = torch.bmm(atom_to_token, s_to_c)
                 c = c + s_to_c.to(c)
 
@@ -398,7 +408,7 @@ class AtomEncoder(Module):
                     B, K, W, atom_to_token.shape[-1]
                 )
                 atom_to_token_keys = to_keys(atom_to_token)
-                z_to_p = self.z_to_p_trans(z.float())
+                z_to_p = self.z_to_p_trans(z.bfloat16())
                 z_to_p = torch.einsum(
                     "bijd,bwki,bwlj->bwkld",
                     z_to_p,

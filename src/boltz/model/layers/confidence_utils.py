@@ -24,7 +24,8 @@ def compute_frame_pred(
     resolved_mask=None,
     inference=False,
 ):
-    with torch.amp.autocast("xpu", enabled=False):
+    #with torch.amp.autocast("xpu", enabled=False):
+    with torch.autocast("xpu", enabled=False):
         asym_id_token = feats["asym_id"]
         asym_id_atom = torch.bmm(
             feats["atom_to_token"].float(), asym_id_token.unsqueeze(-1).float()

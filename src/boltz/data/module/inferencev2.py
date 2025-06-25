@@ -396,8 +396,8 @@ class Boltz2InferenceDataModule(pl.LightningDataModule):
     def transfer_batch_to_device(
         self,
         batch: dict,
-        device: torch.device,
         dataloader_idx: int,  # noqa: ARG002
+        device: torch.device = 'xpu',
     ) -> dict:
         """Transfer a batch to the given device.
 
@@ -416,6 +416,7 @@ class Boltz2InferenceDataModule(pl.LightningDataModule):
             The transferred batch.
 
         """
+        print(f"device is {device}")
         for key in batch:
             if key not in [
                 "all_coords",

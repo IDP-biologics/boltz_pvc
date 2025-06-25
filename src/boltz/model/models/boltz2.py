@@ -364,7 +364,7 @@ class Boltz2(LightningModule):
             torch.xpu.is_available()
             #and torch.xpu.get_device_properties(torch.device("xpu")).major >= 8.0  # noqa: PLR2004
         ):
-            self.use_kernels = True
+            self.use_kernels = False
 
         if (
             stage != "predict"
@@ -886,7 +886,7 @@ class Boltz2(LightningModule):
 
         else:
             confidence_loss_dict = {
-                "loss": torch.tensor(0.0, device=batch["token_index"].device),
+                "loss": torch.tensor(0.0, device='xpu'),#batch["token_index"].device),
                 "loss_breakdown": {},
             }
 
